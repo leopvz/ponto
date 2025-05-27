@@ -67,7 +67,7 @@
 
     function carregarRegistros() {
       const registros = [];
-      for (let chave in localStorage) {
+      Object.keys(localStorage).forEach(chave => {
         if (chave.startsWith("ponto-")) {
           const partes = chave.split("-");
           const nome = partes[1];
@@ -75,7 +75,7 @@
           const batidas = JSON.parse(localStorage.getItem(chave));
           registros.push({ nome, data, batidas });
         }
-      }
+      });
       return registros;
     }
 
@@ -100,7 +100,7 @@
         const tr = document.createElement("tr");
         tr.className = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
 
-        const batidas = r.batidas.map((b, i) => `<div>${b.tipo || (i+1)+"ª"}: ${b.hora}</div>`).join("");
+        const batidas = r.batidas.map(b => `<div>${b.tipo || "?"}: ${b.hora}</div>`).join("");
         const selfies = r.batidas.map(b => b.foto ? `<img src="${b.foto}" alt="Selfie" class="w-12 h-12 rounded-full mx-auto mb-1" />` : `<div class='text-center text-sm text-gray-400'>Sem selfie</div>`).join("");
 
         tr.innerHTML = `
