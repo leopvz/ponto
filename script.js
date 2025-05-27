@@ -1,100 +1,220 @@
-// script.js
-
-const users = {
-  Emerson: { password: "papel12", nome: "Emerson Caldeira", setor: "Produção", horarios: { semana: ["07:30", "12:00", "13:00", "17:30"], sexta: ["07:30", "12:00", "13:00", "16:30"] } },
-  Flavio: { password: "papel13", nome: "Flávio Furtado", setor: "Produção", horarios: { semana: ["07:30", "12:00", "13:00", "17:30"], sexta: ["07:30", "12:00", "13:00", "16:30"] } },
-  Elias: { password: "papel14", nome: "Elias Almo", setor: "Design", horarios: { semana: ["08:00", "12:00", "13:00", "18:00"], sexta: ["08:00", "12:00", "13:00", "17:00"] } },
-  Admin: { password: "adm@papel12", isAdmin: true }
+// CONFIGURAÇÕES INICIAIS
+const funcionarios = {
+  "emerson": {
+    nome: "Emerson Caldeira",
+    setor: "Produção",
+    horarios: {
+      segqui: { entrada: "07:30", saida: "17:30" },
+      sex: { entrada: "07:30", saida: "16:30" }
+    }
+  },
+  "flavio": {
+    nome: "Flávio Furtado",
+    setor: "Produção",
+    horarios: {
+      segqui: { entrada: "07:30", saida: "17:30" },
+      sex: { entrada: "07:30", saida: "16:30" }
+    }
+  },
+  "elias": {
+    nome: "Elias Almo",
+    setor: "Design",
+    horarios: {
+      segqui: { entrada: "08:00", saida: "18:00" },
+      sex: { entrada: "08:00", saida: "17:00" }
+    }
+  }
 };
 
-function getUserData() {
-  const data = localStorage.getItem("ponto-registros");
-  return data ? JSON.parse(data) : [];
+const localizacaoValida = {
+  lat: -23.477944, // 23°28'40.6"S
+  lng: -46.651000, // 46°39'03.2"W
+  raioMetros: 50
+};
+
+// FUNÇÕES GERAIS
+function horaAtual() {
+  return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function saveUserData(registros) {
-  localStorage.setItem("ponto-registros", JSON.stringify(registros));
+function diaSemana() {
+  return new Date().getDay(); // 0 = Domingo
 }
 
-function obterHorarioAtual() {
-  const agora = new Date();
-  return agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+function salvarRegistro(registro) {
+  const registros = JSON.parse(localStorage.getItem("registros") || "[]");
+  registros.push(registro);
+  localStorage.setItem("registros", JSON.stringify(registros));
 }
 
-function obterDataAtual() {
-  return new Date().toISOString().split("T")[0];
-}
-
-function definirTipoBatida(horario, user) {
-  const hoje = new Date().getDay();
-  const ehSexta = hoje === 5;
-  const batidasEsperadas = ehSexta ? user.horarios.sexta : user.horarios.semana;
-  for (let i = 0; i < batidasEsperadas.length; i++) {
-    const [h, m] = batidasEsperadas[i].split(":").map(Number);
-    const tempoRef = new Date();
-    tempoRef.setHours(h, m, 0, 0);
-
-    const agora = new Date();
-    const dif = Math.abs(agora - tempoRef);
-    if (dif <= 30 * 60000) return `${i + 1}ª`;
-  }
-  return "Extra";
-}
-
-function registrarBatida(nome) {
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const distancia = calcularDistancia(
-      pos.coords.latitude,
-      pos.coords.longitude,
-      -23.47794444444444,
-      -46.65088888888889
-    );
-
-    if (distancia > 50) return alert("Fora da localização permitida.");
-
-    const video = document.createElement("video");
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-    video.srcObject = stream;
-    video.play();
-
-    setTimeout(() => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0);
-      const selfie = canvas.toDataURL("image/png");
-
-      const registros = getUserData();
-      const hoje = obterDataAtual();
-      let registro = registros.find((r) => r.nome === nome && r.data === hoje);
-      if (!registro) {
-        registro = { nome, data: hoje, batidas: [], selfies: [], justificativa: "" };
-        registros.push(registro);
-      }
-
-      const hora = obterHorarioAtual();
-      const tipo = definirTipoBatida(hora, users[nome]);
-      registro.batidas.push({ tipo, hora });
-      registro.selfies.push(selfie);
-      saveUserData(registros);
-
-      alert(`Ponto registrado (${tipo}) às ${hora}`);
-      stream.getTracks().forEach((t) => t.stop());
-    }, 1000);
-  });
+function obterRegistrosUsuario(usuario) {
+  const registros = JSON.parse(localStorage.getItem("registros") || "[]");
+  return registros.filter(r => r.usuario === usuario);
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371e3;
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
+  const R = 6371e3; // metros
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
 
-  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
   return R * c;
 }
+
+function validarLocalizacaoAtual(callback) {
+  if (!navigator.geolocation) {
+    alert("Geolocalização não suportada!");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const distancia = calcularDistancia(
+        position.coords.latitude,
+        position.coords.longitude,
+        localizacaoValida.lat,
+        localizacaoValida.lng
+      );
+      callback(distancia <= localizacaoValida.raioMetros);
+    },
+    () => alert("Não foi possível obter a localização.")
+  );
+}
+
+function capturarSelfie(callback) {
+  const video = document.createElement("video");
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+      video.srcObject = stream;
+      video.play();
+
+      setTimeout(() => {
+        canvas.width = 320;
+        canvas.height = 240;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imagemBase64 = canvas.toDataURL("image/png");
+
+        stream.getTracks().forEach(track => track.stop());
+        callback(imagemBase64);
+      }, 1500);
+    })
+    .catch(() => alert("Erro ao capturar selfie."));
+}
+
+// LOGIN
+function login() {
+  const usuario = document.getElementById("usuario").value.trim().toLowerCase();
+  const senha = document.getElementById("senha").value;
+
+  if (!funcionarios[usuario] || senha !== "123456") {
+    alert("Usuário ou senha incorretos.");
+    return;
+  }
+
+  sessionStorage.setItem("usuario", usuario);
+  exibirInterfaceFuncionario();
+}
+
+// INTERFACE
+function exibirInterfaceFuncionario() {
+  const usuario = sessionStorage.getItem("usuario");
+  if (!usuario) return;
+
+  document.getElementById("loginArea").style.display = "none";
+  document.getElementById("pontoArea").style.display = "block";
+  document.getElementById("saudacao").innerText = `Olá, ${funcionarios[usuario].nome}`;
+
+  atualizarRelogio();
+  mostrarResumoDoDia();
+}
+
+function atualizarRelogio() {
+  setInterval(() => {
+    const agora = new Date();
+    document.getElementById("relogio").innerText = agora.toLocaleTimeString("pt-BR");
+  }, 1000);
+}
+
+// TIPO DE BATIDA
+function determinarTipoBatida(hora) {
+  const [h, m] = hora.split(":").map(Number);
+  const minutos = h * 60 + m;
+
+  if (minutos < 540) return "Entrada";
+  if (minutos < 780) return "Saída para almoço";
+  if (minutos < 1020) return "Retorno do almoço";
+  if (minutos < 1320) return "Saída do dia";
+  return "Ponto Extra";
+}
+
+// BATER PONTO
+function baterPonto() {
+  const usuario = sessionStorage.getItem("usuario");
+  if (!usuario) return;
+
+  validarLocalizacaoAtual((autorizado) => {
+    if (!autorizado) {
+      alert("Você está fora da localização permitida.");
+      return;
+    }
+
+    capturarSelfie((imagem) => {
+      const hora = horaAtual();
+      const tipo = determinarTipoBatida(hora);
+
+      const registro = {
+        usuario,
+        nome: funcionarios[usuario].nome,
+        hora,
+        tipo,
+        data: new Date().toLocaleDateString("pt-BR"),
+        selfie: imagem
+      };
+
+      salvarRegistro(registro);
+      mostrarResumoDoDia();
+      alert("Ponto registrado com sucesso!");
+    });
+  });
+}
+
+function mostrarResumoDoDia() {
+  const usuario = sessionStorage.getItem("usuario");
+  const container = document.getElementById("resumo");
+  const hoje = new Date().toLocaleDateString("pt-BR");
+
+  const registros = obterRegistrosUsuario(usuario).filter(r => r.data === hoje);
+
+  container.innerHTML = registros.map(r => `
+    <div class="resumo-item">
+      <strong>${r.tipo}</strong> às ${r.hora}
+      <br>
+      <img src="${r.selfie}" alt="Selfie" width="100">
+    </div>
+  `).join("");
+}
+
+function sair() {
+  sessionStorage.clear();
+  location.reload();
+}
+
+// EVENTOS
+document.addEventListener("DOMContentLoaded", () => {
+  if (sessionStorage.getItem("usuario")) {
+    exibirInterfaceFuncionario();
+  }
+
+  document.getElementById("btnEntrar").addEventListener("click", login);
+  document.getElementById("btnBaterPonto").addEventListener("click", baterPonto);
+  document.getElementById("btnSair").addEventListener("click", sair);
+});
