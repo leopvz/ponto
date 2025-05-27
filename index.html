@@ -5,211 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ponto Papelprint</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    #video {
-      width: 100%;
-      max-height: 240px;
-      border-radius: 0.5rem;
-    }
-  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white shadow-xl rounded-lg w-full max-w-md p-6">
-    <h1 class="text-xl font-bold text-center mb-4">Sistema de Ponto - Papelprint</h1>
+  <div class="bg-white shadow-md rounded-lg p-8 max-w-xl w-full text-center">
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">Registro de Ponto</h1>
+    <p id="relogio" class="text-lg text-gray-600 mb-6"></p>
 
-    <div id="login-section">
-      <label class="block mb-2 text-gray-700 font-medium">Usuário</label>
-      <input id="username" type="text" class="w-full border px-4 py-2 rounded mb-4" placeholder="Digite seu nome" />
-      <label class="block mb-2 text-gray-700 font-medium">Senha</label>
-      <input id="password" type="password" class="w-full border px-4 py-2 rounded mb-4" placeholder="Digite sua senha" />
-      <button id="login-btn" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Entrar</button>
+    <!-- Login -->
+    <div id="form-login">
+      <input id="usuario" type="text" placeholder="Usuário" class="border w-full px-4 py-2 mb-4 rounded" />
+      <input id="senha" type="password" placeholder="Senha" class="border w-full px-4 py-2 mb-6 rounded" />
+      <button id="entrar" class="bg-blue-600 text-white px-6 py-2 rounded w-full">Entrar</button>
     </div>
 
-    <div id="ponto-section" class="hidden">
-      <h2 class="text-center text-lg font-semibold mb-1" id="user-welcome"></h2>
-      <p class="text-center text-sm text-gray-600" id="date-display"></p>
-      <p class="text-center text-xl font-mono mt-2" id="clock"></p>
-      <button id="ponto-btn" class="w-full bg-green-600 text-white py-2 rounded mt-4 hover:bg-green-700">Bater Ponto</button>
-
-      <div id="camera-container" class="hidden mt-4">
-        <video id="video" autoplay></video>
-        <button id="capture-btn" class="w-full bg-blue-500 text-white py-2 rounded mt-2">Capturar Selfie</button>
-      </div>
-
-      <div class="mt-6">
-        <h3 class="font-medium text-gray-700 mb-2">Batidas do Dia:</h3>
-        <ul id="batidas-list" class="text-sm text-gray-800 space-y-1"></ul>
-      </div>
-
-      <div class="mt-4 border-t pt-4">
-        <h3 class="font-medium text-gray-700 mb-2">Saldo de Banco de Horas:</h3>
-        <p id="saldo-horas" class="text-lg font-semibold"></p>
-        <p id="alerta" class="text-sm text-yellow-600 mt-2"></p>
-      </div>
-
-      <img id="selfie-preview" class="mt-4 hidden rounded-lg w-full" />
-
-      <button id="logout-btn" class="mt-6 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Sair</button>
+    <!-- Painel de ponto -->
+    <div id="painel-ponto" class="hidden">
+      <h2 id="boas-vindas" class="text-xl font-semibold text-gray-700 mb-4"></h2>
+      <video id="video" autoplay playsinline class="w-64 h-48 mx-auto rounded border mb-4"></video>
+      <button id="bater-ponto" class="bg-green-600 text-white px-6 py-2 rounded">Bater Ponto</button>
+      <p id="status" class="mt-4 text-gray-600"></p>
     </div>
   </div>
 
-  <script>
-    const users = {
-      "Emerson": { senha: "papel12", entrada: "07:30", saida: "17:30", sexta: "16:30" },
-      "Flavio": { senha: "papel13", entrada: "07:30", saida: "17:30", sexta: "16:30" },
-      "Elias": { senha: "papel14", entrada: "08:00", saida: "18:00", sexta: "17:00" },
-    };
-
-    const pontoLatitude = -23.477944;
-    const pontoLongitude = -46.650889;
-    const pontoRaioMetros = 50;
-
-    const loginBtn = document.getElementById("login-btn");
-    const pontoBtn = document.getElementById("ponto-btn");
-    const captureBtn = document.getElementById("capture-btn");
-    const logoutBtn = document.getElementById("logout-btn");
-
-    const loginSection = document.getElementById("login-section");
-    const pontoSection = document.getElementById("ponto-section");
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
-    const userWelcome = document.getElementById("user-welcome");
-    const batidasList = document.getElementById("batidas-list");
-    const saldoHoras = document.getElementById("saldo-horas");
-    const alerta = document.getElementById("alerta");
-    const dateDisplay = document.getElementById("date-display");
-    const clock = document.getElementById("clock");
-    const video = document.getElementById("video");
-    const selfiePreview = document.getElementById("selfie-preview");
-    const cameraContainer = document.getElementById("camera-container");
-
-    let usuarioLogado = null;
-    let stream = null;
-
-    function startClock() {
-      setInterval(() => {
-        clock.textContent = new Date().toLocaleTimeString();
-      }, 1000);
-    }
-
-    function distance(lat1, lon1, lat2, lon2) {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
-
-    function formatarHora(data) {
-      return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function carregarBatidas(nome) {
-      const dataHoje = new Date().toISOString().split('T')[0];
-      const key = `ponto-${nome}-${dataHoje}`;
-      return JSON.parse(localStorage.getItem(key) || "[]");
-    }
-
-    function salvarBatida(nome, hora, foto) {
-      const dataHoje = new Date().toISOString().split('T')[0];
-      const key = `ponto-${nome}-${dataHoje}`;
-      const batidas = JSON.parse(localStorage.getItem(key) || "[]");
-      batidas.push({ hora, foto });
-      localStorage.setItem(key, JSON.stringify(batidas));
-    }
-
-    function calcularBanco(nome, batidas) {
-      if (batidas.length < 4) return { saldo: "--", alerta: "Batidas incompletas." };
-
-      const hoje = new Date();
-      const ehSexta = hoje.getDay() === 5;
-      const entradaEsperada = users[nome].entrada;
-      const saidaEsperada = ehSexta ? users[nome].sexta : users[nome].saida;
-
-      const [t1, t2, t3, t4] = batidas.map(b => new Date(`${hoje.toDateString()} ${b.hora}`));
-      const trabalho1 = (t2 - t1) / 3600000;
-      const trabalho2 = (t4 - t3) / 3600000;
-      const total = trabalho1 + trabalho2;
-
-      const carga = (new Date(`${hoje.toDateString()} ${saidaEsperada}`) - new Date(`${hoje.toDateString()} ${entradaEsperada}`)) / 3600000 - 1;
-      const diff = total - carga;
-      const saldo = diff >= 0 ? `+${diff.toFixed(2)}h` : `${diff.toFixed(2)}h`;
-
-      const intervalo = (t3 - t2) / 60000;
-      let alertaTexto = "";
-      if (intervalo < 60) alertaTexto = `⚠️ Almoço inferior a 1h: ${intervalo} min`;
-      if (intervalo > 60) alertaTexto = `⏳ Almoço excedeu 1h: -${(intervalo - 60)} min`;
-
-      return { saldo, alerta: alertaTexto };
-    }
-
-    loginBtn.onclick = () => {
-      const nome = usernameInput.value.trim();
-      const senha = passwordInput.value.trim();
-
-      if (users[nome] && users[nome].senha === senha) {
-        usuarioLogado = nome;
-        loginSection.classList.add("hidden");
-        pontoSection.classList.remove("hidden");
-        userWelcome.textContent = `Olá, ${nome}`;
-        dateDisplay.textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
-        startClock();
-        renderBatidas();
-      } else {
-        alert("Usuário ou senha incorretos.");
-      }
-    };
-
-    pontoBtn.onclick = () => {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const dist = distance(pos.coords.latitude, pos.coords.longitude, pontoLatitude, pontoLongitude);
-        if (dist > pontoRaioMetros) {
-          alert("Você está fora da área permitida para bater ponto.");
-          return;
-        }
-        navigator.mediaDevices.getUserMedia({ video: true }).then(s => {
-          stream = s;
-          video.srcObject = stream;
-          cameraContainer.classList.remove("hidden");
-        }).catch(() => alert("Erro ao acessar a câmera."));
-      }, () => alert("Permita a localização para bater ponto."));
-    };
-
-    captureBtn.onclick = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video, 0, 0);
-      const foto = canvas.toDataURL("image/png");
-      stream.getTracks().forEach(t => t.stop());
-      cameraContainer.classList.add("hidden");
-      selfiePreview.src = foto;
-      selfiePreview.classList.remove("hidden");
-      const hora = formatarHora(new Date());
-      salvarBatida(usuarioLogado, hora, foto);
-      renderBatidas();
-    };
-
-    function renderBatidas() {
-      const batidas = carregarBatidas(usuarioLogado);
-      batidasList.innerHTML = batidas.map((b, i) => `<li>${i + 1}ª batida: ${b.hora}</li>`).join("");
-      const banco = calcularBanco(usuarioLogado, batidas);
-      saldoHoras.textContent = banco.saldo;
-      alerta.textContent = banco.alerta;
-    }
-
-    logoutBtn.onclick = () => {
-      usuarioLogado = null;
-      stream?.getTracks().forEach(t => t.stop());
-      loginSection.classList.remove("hidden");
-      pontoSection.classList.add("hidden");
-      usernameInput.value = "";
-      passwordInput.value = "";
-    };
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
