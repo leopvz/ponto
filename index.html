@@ -6,6 +6,13 @@
   <title>Ponto Papelprint</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    #video {
+      width: 100%;
+      max-height: 240px;
+      border-radius: 0.5rem;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
   <div class="bg-white shadow-xl rounded-lg w-full max-w-md p-6">
@@ -20,9 +27,15 @@
     </div>
 
     <div id="ponto-section" class="hidden">
-      <h2 class="text-center text-lg font-semibold mb-2" id="user-welcome"></h2>
-      <p class="text-center text-sm text-gray-600 mb-4" id="date-display"></p>
-      <button id="ponto-btn" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Bater Ponto</button>
+      <h2 class="text-center text-lg font-semibold mb-1" id="user-welcome"></h2>
+      <p class="text-center text-sm text-gray-600" id="date-display"></p>
+      <p class="text-center text-xl font-mono mt-2" id="clock"></p>
+      <button id="ponto-btn" class="w-full bg-green-600 text-white py-2 rounded mt-4 hover:bg-green-700">Bater Ponto</button>
+
+      <div id="camera-container" class="hidden mt-4">
+        <video id="video" autoplay></video>
+        <button id="capture-btn" class="w-full bg-blue-500 text-white py-2 rounded mt-2">Capturar Selfie</button>
+      </div>
 
       <div class="mt-6">
         <h3 class="font-medium text-gray-700 mb-2">Batidas do Dia:</h3>
@@ -35,6 +48,8 @@
         <p id="alerta" class="text-sm text-yellow-600 mt-2"></p>
       </div>
 
+      <img id="selfie-preview" class="mt-4 hidden rounded-lg w-full" />
+
       <button id="logout-btn" class="mt-6 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Sair</button>
     </div>
   </div>
@@ -46,8 +61,13 @@
       "Elias": { senha: "papel14", entrada: "08:00", saida: "18:00", sexta: "17:00" },
     };
 
+    const pontoLatitude = -23.477944;
+    const pontoLongitude = -46.650889;
+    const pontoRaioMetros = 50;
+
     const loginBtn = document.getElementById("login-btn");
     const pontoBtn = document.getElementById("ponto-btn");
+    const captureBtn = document.getElementById("capture-btn");
     const logoutBtn = document.getElementById("logout-btn");
 
     const loginSection = document.getElementById("login-section");
@@ -59,8 +79,30 @@
     const saldoHoras = document.getElementById("saldo-horas");
     const alerta = document.getElementById("alerta");
     const dateDisplay = document.getElementById("date-display");
+    const clock = document.getElementById("clock");
+    const video = document.getElementById("video");
+    const selfiePreview = document.getElementById("selfie-preview");
+    const cameraContainer = document.getElementById("camera-container");
 
     let usuarioLogado = null;
+    let stream = null;
+
+    function startClock() {
+      setInterval(() => {
+        clock.textContent = new Date().toLocaleTimeString();
+      }, 1000);
+    }
+
+    function distance(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
 
     function formatarHora(data) {
       return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -69,48 +111,38 @@
     function carregarBatidas(nome) {
       const dataHoje = new Date().toISOString().split('T')[0];
       const key = `ponto-${nome}-${dataHoje}`;
-      const batidas = JSON.parse(localStorage.getItem(key) || "[]");
-      return batidas;
+      return JSON.parse(localStorage.getItem(key) || "[]");
     }
 
-    function salvarBatida(nome, hora) {
+    function salvarBatida(nome, hora, foto) {
       const dataHoje = new Date().toISOString().split('T')[0];
       const key = `ponto-${nome}-${dataHoje}`;
       const batidas = JSON.parse(localStorage.getItem(key) || "[]");
-      batidas.push(hora);
+      batidas.push({ hora, foto });
       localStorage.setItem(key, JSON.stringify(batidas));
     }
 
     function calcularBanco(nome, batidas) {
-      const hoje = new Date();
-      const diaSemana = hoje.getDay();
-      const ehSexta = diaSemana === 5;
+      if (batidas.length < 4) return { saldo: "--", alerta: "Batidas incompletas." };
 
+      const hoje = new Date();
+      const ehSexta = hoje.getDay() === 5;
       const entradaEsperada = users[nome].entrada;
       const saidaEsperada = ehSexta ? users[nome].sexta : users[nome].saida;
 
-      if (batidas.length < 4) return { saldo: "--", alerta: "Batidas incompletas." };
-
-      const t1 = new Date(`${hoje.toDateString()} ${batidas[0]}`);
-      const t2 = new Date(`${hoje.toDateString()} ${batidas[1]}`);
-      const t3 = new Date(`${hoje.toDateString()} ${batidas[2]}`);
-      const t4 = new Date(`${hoje.toDateString()} ${batidas[3]}`);
-
+      const [t1, t2, t3, t4] = batidas.map(b => new Date(`${hoje.toDateString()} ${b.hora}`));
       const trabalho1 = (t2 - t1) / 3600000;
       const trabalho2 = (t4 - t3) / 3600000;
       const total = trabalho1 + trabalho2;
 
-      const entrada = new Date(`${hoje.toDateString()} ${entradaEsperada}`);
-      const saida = new Date(`${hoje.toDateString()} ${saidaEsperada}`);
-      const carga = (saida - entrada) / 3600000 - 1;
-
+      const carga = (new Date(`${hoje.toDateString()} ${saidaEsperada}`) - new Date(`${hoje.toDateString()} ${entradaEsperada}`)) / 3600000 - 1;
       const diff = total - carga;
       const saldo = diff >= 0 ? `+${diff.toFixed(2)}h` : `${diff.toFixed(2)}h`;
 
-      const intervaloAlmoco = (t3 - t2) / 60000;
+      const intervalo = (t3 - t2) / 60000;
       let alertaTexto = "";
-      if (intervaloAlmoco < 60) alertaTexto = `⚠️ Almoço inferior a 1h: ${intervaloAlmoco} min`;
-      if (intervaloAlmoco > 60) alertaTexto = `⏳ Almoço excedeu 1h: -${(intervaloAlmoco - 60)} min`;
+      if (intervalo < 60) alertaTexto = `⚠️ Almoço inferior a 1h: ${intervalo} min`;
+      if (intervalo > 60) alertaTexto = `⏳ Almoço excedeu 1h: -${(intervalo - 60)} min`;
 
       return { saldo, alerta: alertaTexto };
     }
@@ -125,31 +157,54 @@
         pontoSection.classList.remove("hidden");
         userWelcome.textContent = `Olá, ${nome}`;
         dateDisplay.textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
-
-        const batidas = carregarBatidas(nome);
-        batidasList.innerHTML = batidas.map((h, i) => `<li>${i+1}ª batida: ${h}</li>`).join("");
-        const banco = calcularBanco(nome, batidas);
-        saldoHoras.textContent = banco.saldo;
-        alerta.textContent = banco.alerta;
+        startClock();
+        renderBatidas();
       } else {
         alert("Usuário ou senha incorretos.");
       }
     };
 
     pontoBtn.onclick = () => {
-      const agora = new Date();
-      const hora = formatarHora(agora);
-      salvarBatida(usuarioLogado, hora);
-      const batidas = carregarBatidas(usuarioLogado);
+      navigator.geolocation.getCurrentPosition(pos => {
+        const dist = distance(pos.coords.latitude, pos.coords.longitude, pontoLatitude, pontoLongitude);
+        if (dist > pontoRaioMetros) {
+          alert("Você está fora da área permitida para bater ponto.");
+          return;
+        }
+        navigator.mediaDevices.getUserMedia({ video: true }).then(s => {
+          stream = s;
+          video.srcObject = stream;
+          cameraContainer.classList.remove("hidden");
+        }).catch(() => alert("Erro ao acessar a câmera."));
+      }, () => alert("Permita a localização para bater ponto."));
+    };
 
-      batidasList.innerHTML = batidas.map((h, i) => `<li>${i+1}ª batida: ${h}</li>`).join("");
+    captureBtn.onclick = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      const foto = canvas.toDataURL("image/png");
+      stream.getTracks().forEach(t => t.stop());
+      cameraContainer.classList.add("hidden");
+      selfiePreview.src = foto;
+      selfiePreview.classList.remove("hidden");
+      const hora = formatarHora(new Date());
+      salvarBatida(usuarioLogado, hora, foto);
+      renderBatidas();
+    };
+
+    function renderBatidas() {
+      const batidas = carregarBatidas(usuarioLogado);
+      batidasList.innerHTML = batidas.map((b, i) => `<li>${i + 1}ª batida: ${b.hora}</li>`).join("");
       const banco = calcularBanco(usuarioLogado, batidas);
       saldoHoras.textContent = banco.saldo;
       alerta.textContent = banco.alerta;
-    };
+    }
 
     logoutBtn.onclick = () => {
       usuarioLogado = null;
+      stream?.getTracks().forEach(t => t.stop());
       loginSection.classList.remove("hidden");
       pontoSection.classList.add("hidden");
       usernameInput.value = "";
