@@ -1,39 +1,99 @@
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #f8fafc;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 0;
 }
 
-.logo {
-  width: 100%;
-  height: auto;
-  max-width: 160px;
-  margin: 0 auto;
-}
-
-.btn-primary {
-  background-color: #00AEEF;
-  color: white;
+h1, h2 {
   font-weight: bold;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  transition: background-color 0.3s ease;
+  color: #1f2937;
 }
 
-.btn-primary:hover {
-  background-color: #008bb5;
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.3rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1e40af;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
 }
 
 .btn-secondary {
-  background-color: #e2e8f0;
-  color: #1a202c;
-  font-weight: bold;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
+  background-color: #6b7280;
 }
 
-.thumbnail {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+.btn-secondary:hover {
+  background-color: #4b5563;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+
+table thead {
+  background-color: #e5e7eb;
+}
+
+table th, table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #d1d5db;
+}
+
+select, input[type="date"] {
+  max-width: 200px;
+}
+
+img.thumbnail {
+  width: 40px;
+  height: 40px;
   object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
 }
