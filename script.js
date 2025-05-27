@@ -23,7 +23,7 @@ const horarios = {
     entrada: ["07:30", "09:00"],
     saidaAlmoco: ["12:00", "13:30"],
     retornoAlmoco: ["13:00", "14:30"],
-    saidaFinal: ["16:30", "18:00"] // sexta é considerado no admin.html
+    saidaFinal: ["16:30", "18:00"]
   }
 };
 
@@ -33,6 +33,9 @@ const boasVindas = document.getElementById("boas-vindas");
 const video = document.getElementById("video");
 const status = document.getElementById("status");
 const relogio = document.getElementById("relogio");
+const resumoDiario = document.getElementById("resumo-diario");
+const resumoDetalhes = document.getElementById("resumo-detalhes");
+const voltarBtn = document.getElementById("voltar");
 
 let usuarioAtual = null;
 let stream = null;
@@ -133,6 +136,27 @@ document.getElementById("bater-ponto").onclick = () => {
     tirarFoto(foto => {
       salvarPonto(usuarioAtual, hora, tipo, foto);
       status.textContent = `Ponto ${tipo} registrado às ${hora}`;
+      mostrarResumo(usuarioAtual);
     });
   });
+};
+
+function mostrarResumo(nome) {
+  const hoje = new Date().toISOString().split("T")[0];
+  const chave = `ponto-${nome}-${hoje}`;
+  const batidas = JSON.parse(localStorage.getItem(chave) || "[]");
+  let html = `<strong>Data:</strong> ${hoje}<br/><br/>`;
+  batidas.forEach((b, i) => {
+    html += `${i+1}ª - <strong>${b.tipo}</strong>: ${b.hora}<br/>`;
+  });
+  html += `<br/><strong>Selfies registradas:</strong> ${batidas.length}`;
+
+  painel.classList.add("hidden");
+  resumoDiario.classList.remove("hidden");
+  resumoDetalhes.innerHTML = html;
+}
+
+voltarBtn.onclick = () => {
+  resumoDiario.classList.add("hidden");
+  painel.classList.remove("hidden");
 };
