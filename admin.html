@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Controle de Ponto</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Administrador - Controle de Ponto</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <h1>Painel do Administrador - Controle de Ponto</h1>
-
-    <div class="filtros">
-      <label>Funcionário</label>
-      <select id="filtro-funcionario">
-        <option value="Todos">Todos</option>
+    <div class="filters">
+      <label for="admin-employee-select">Funcionário</label>
+      <select id="admin-employee-select">
+        <option value="todos">Todos</option>
         <option value="Emerson">Emerson</option>
         <option value="Flavio">Flavio</option>
         <option value="Elias">Elias</option>
       </select>
-
-      <label>Data Inicial</label>
-      <input type="date" id="filtro-inicio" />
-
-      <label>Data Final</label>
-      <input type="date" id="filtro-fim" />
-
-      <button onclick="aplicarFiltro()">Aplicar Filtros</button>
+      <label for="start-date">Data Inicial</label>
+      <input type="date" id="start-date">
+      <label for="end-date">Data Final</label>
+      <input type="date" id="end-date">
+      <button id="apply-filters">Aplicar Filtros</button>
     </div>
 
-    <table>
+    <table id="admin-records-table">
       <thead>
         <tr>
           <th>Nome</th>
@@ -39,12 +35,10 @@
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody id="tabela-registros">
-        <!-- Registros preenchidos via JS -->
-      </tbody>
+      <tbody></tbody>
     </table>
 
-    <button class="botao-verde" onclick="exportarExcel()">Exportar Excel</button>
+    <button id="export-excel">Exportar Excel</button>
   </div>
 
   <script src="script.js"></script>
