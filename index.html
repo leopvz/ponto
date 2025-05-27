@@ -1,39 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Ponto - Funcionário</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Ponto</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Sistema de Ponto - Funcionário</h1>
-
-    <!-- Login -->
-    <div id="login-form">
-      <label for="usuario">Usuário</label>
-      <input type="text" id="usuario" class="form-control" placeholder="Digite seu nome" />
-
-      <label for="senha">Senha</label>
-      <input type="password" id="senha" class="form-control" placeholder="Digite sua senha" />
-
-      <button onclick="login()" class="btn btn-primary">Entrar</button>
-      <p id="mensagem-login" class="mensagem-erro oculto">Usuário ou senha incorretos.</p>
+    <!-- Tela de Login -->
+    <div id="login-area">
+      <h2>Login do Funcionário</h2>
+      <input type="text" id="username" placeholder="Usuário">
+      <input type="password" id="password" placeholder="Senha">
+      <button id="login-btn">Entrar</button>
     </div>
 
-    <!-- Painel principal (invisível até login) -->
-    <div id="painel-ponto" class="oculto">
-      <p>Bem-vindo, <span id="usuario-logado"></span></p>
-      <p>Horário atual: <span id="hora-atual"></span></p>
-
-      <div class="botoes">
-        <button onclick="baterPonto()" class="btn btn-success">Bater Ponto</button>
-        <button onclick="logout()" class="btn btn-danger">Sair</button>
+    <!-- Área pós-login -->
+    <div id="main-area" style="display:none;">
+      <div id="header-area">
+        <span id="relogio"></span>
+        <button id="logout-btn">Sair</button>
       </div>
-
-      <h2>Resumo do Dia</h2>
-      <div id="resumo-dia" class="resumo-box"></div>
+      <h2>Bem-vindo(a), <span id="user-logado"></span></h2>
+      <div id="ponto-actions">
+        <button id="bater-ponto-btn">Bater Ponto</button>
+        <button id="resumo-dia-btn">Resumo do Dia</button>
+      </div>
+      <div id="resumo-dia" style="display:none;"></div>
+      <video id="video" autoplay style="display:none;"></video>
+      <canvas id="canvas" style="display:none;"></canvas>
     </div>
   </div>
 
