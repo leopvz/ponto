@@ -3,35 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ponto - Papelprint</title>
+  <title>Sistema de Ponto - Funcionário</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1 class="titulo">Sistema de Ponto - Funcionário</h1>
+    <h1>Sistema de Ponto - Funcionário</h1>
 
-    <div id="login-section">
-      <label>Usuário</label>
-      <input type="text" id="usuario" placeholder="Digite seu nome" />
-      <label>Senha</label>
-      <input type="password" id="senha" placeholder="Digite sua senha" />
-      <button onclick="fazerLogin()">Entrar</button>
-      <p id="login-erro" class="erro oculto">Usuário ou senha incorretos.</p>
+    <div id="login-area">
+      <label for="login-user">Usuário</label>
+      <input type="text" id="login-user" placeholder="Digite seu nome" />
+      <label for="login-pass">Senha</label>
+      <input type="password" id="login-pass" placeholder="Digite sua senha" />
+      <button onclick="loginFuncionario()">Entrar</button>
+      <p id="login-error" class="error-message"></p>
     </div>
 
-    <div id="painel-funcionario" class="oculto">
-      <p>Bem-vindo, <strong id="nome-funcionario"></strong></p>
-      <p>Horário atual: <span id="relogio"></span></p>
-      <button onclick="registrarPonto()">Bater Ponto</button>
-      <video id="camera" autoplay class="oculto"></video>
-      <canvas id="canvas" class="oculto"></canvas>
-      <p id="status-ponto"></p>
+    <div id="registro-area" class="hidden">
+      <p id="bem-vindo"></p>
+      <p id="horario-atual"></p>
 
-      <div id="resumo-dia" class="oculto">
-        <h2>Resumo do Dia</h2>
-        <ul id="lista-pontos"></ul>
-        <button onclick="voltarPainel()">Voltar</button>
-      </div>
+      <button id="bater-ponto-btn" onclick="baterPonto()">Bater Ponto</button>
+      <button onclick="logout()">Sair</button>
+
+      <h2>Resumo do Dia</h2>
+      <ul id="resumo-dia"></ul>
     </div>
   </div>
 
