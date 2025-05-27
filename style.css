@@ -1,0 +1,39 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8fafc;
+}
+
+.logo {
+  width: 100%;
+  height: auto;
+  max-width: 160px;
+  margin: 0 auto;
+}
+
+.btn-primary {
+  background-color: #00AEEF;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #008bb5;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #1a202c;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+}
+
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
