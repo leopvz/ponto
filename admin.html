@@ -100,8 +100,8 @@
         const tr = document.createElement("tr");
         tr.className = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
 
-        const batidas = r.batidas.map((b, i) => `<div>${i+1}ª: ${b.hora}</div>`).join("");
-        const selfies = r.batidas.map(b => `<img src="${b.foto}" alt="Selfie" class="w-12 h-12 rounded-full mx-auto mb-1" />`).join("");
+        const batidas = r.batidas.map((b, i) => `<div>${b.tipo || (i+1)+"ª"}: ${b.hora}</div>`).join("");
+        const selfies = r.batidas.map(b => b.foto ? `<img src="${b.foto}" alt="Selfie" class="w-12 h-12 rounded-full mx-auto mb-1" />` : `<div class='text-center text-sm text-gray-400'>Sem selfie</div>`).join("");
 
         tr.innerHTML = `
           <td class="border px-4 py-2">${r.nome}</td>
@@ -133,7 +133,7 @@
       const lista = novaHora.split(",").map(h => h.trim());
       const atual = carregarRegistros().find(r => r.nome === nome && r.data === data);
       if (!atual) return alert("Registro não encontrado.");
-      const novos = lista.map((h, i) => ({ hora: h, foto: atual.batidas[i]?.foto || "" }));
+      const novos = lista.map((h, i) => ({ hora: h, tipo: atual.batidas[i]?.tipo || `Batida ${i+1}`, foto: atual.batidas[i]?.foto || "" }));
       localStorage.setItem(`ponto-${nome}-${data}`, JSON.stringify(novos));
       aplicarFiltros();
     }
