@@ -7,69 +7,154 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <!-- Login Page -->
-  <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-      <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">Sistema de Ponto</h1>
-        <p class="text-gray-600">Faça login para registrar seu ponto</p>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-xl rounded-lg w-full max-w-md p-6">
+    <h1 class="text-xl font-bold text-center mb-4">Sistema de Ponto - Papelprint</h1>
+
+    <div id="login-section">
+      <label class="block mb-2 text-gray-700 font-medium">Usuário</label>
+      <input id="username" type="text" class="w-full border px-4 py-2 rounded mb-4" placeholder="Digite seu nome" />
+      <label class="block mb-2 text-gray-700 font-medium">Senha</label>
+      <input id="password" type="password" class="w-full border px-4 py-2 rounded mb-4" placeholder="Digite sua senha" />
+      <button id="login-btn" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Entrar</button>
+    </div>
+
+    <div id="ponto-section" class="hidden">
+      <h2 class="text-center text-lg font-semibold mb-2" id="user-welcome"></h2>
+      <p class="text-center text-sm text-gray-600 mb-4" id="date-display"></p>
+      <button id="ponto-btn" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Bater Ponto</button>
+
+      <div class="mt-6">
+        <h3 class="font-medium text-gray-700 mb-2">Batidas do Dia:</h3>
+        <ul id="batidas-list" class="text-sm text-gray-800 space-y-1"></ul>
       </div>
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label for="username" class="block text-gray-700 mb-1">Usuário</label>
-          <input type="text" id="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
-        </div>
-        <div>
-          <label for="password" class="block text-gray-700 mb-1">Senha</label>
-          <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required />
-        </div>
-        <button type="submit" class="btn-primary w-full py-3 mt-2">Entrar</button>
-      </form>
+
+      <div class="mt-4 border-t pt-4">
+        <h3 class="font-medium text-gray-700 mb-2">Saldo de Banco de Horas:</h3>
+        <p id="saldo-horas" class="text-lg font-semibold"></p>
+        <p id="alerta" class="text-sm text-yellow-600 mt-2"></p>
+      </div>
+
+      <button id="logout-btn" class="mt-6 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Sair</button>
     </div>
   </div>
 
-  <!-- Employee Page -->
-  <div id="employee-page" class="hidden min-h-screen flex flex-col items-center justify-center p-4">
-    <h1 id="welcome-message" class="text-2xl font-bold mb-4"></h1>
-    <button id="punch-btn" class="btn-primary px-6 py-3 mb-4">BATER O PONTO</button>
+  <script>
+    const users = {
+      "Emerson": { senha: "papel12", entrada: "07:30", saida: "17:30", sexta: "16:30" },
+      "Flavio": { senha: "papel13", entrada: "07:30", saida: "17:30", sexta: "16:30" },
+      "Elias": { senha: "papel14", entrada: "08:00", saida: "18:00", sexta: "17:00" },
+    };
 
-    <div id="camera-section" class="hidden">
-      <video id="video" width="300" height="200" autoplay></video>
-      <button id="capture-btn" class="btn-primary mt-2">Tirar Foto</button>
-      <canvas id="canvas" class="hidden"></canvas>
-    </div>
+    const loginBtn = document.getElementById("login-btn");
+    const pontoBtn = document.getElementById("ponto-btn");
+    const logoutBtn = document.getElementById("logout-btn");
 
-    <div id="ticket-section" class="hidden mt-6 text-center">
-      <h2 class="text-xl font-bold mb-2">Comprovante</h2>
-      <p id="ticket-name"></p>
-      <p id="ticket-date"></p>
-      <p id="ticket-time"></p>
-      <div id="location-status" class="mt-2"></div>
-      <img id="ticket-photo" class="mt-4 mx-auto w-32 h-32 object-cover rounded-lg" />
-    </div>
+    const loginSection = document.getElementById("login-section");
+    const pontoSection = document.getElementById("ponto-section");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const userWelcome = document.getElementById("user-welcome");
+    const batidasList = document.getElementById("batidas-list");
+    const saldoHoras = document.getElementById("saldo-horas");
+    const alerta = document.getElementById("alerta");
+    const dateDisplay = document.getElementById("date-display");
 
-    <button id="logout-btn" class="btn-secondary mt-6">Sair</button>
-  </div>
+    let usuarioLogado = null;
 
-  <!-- Admin Page -->
-  <div id="admin-page" class="hidden p-4">
-    <h1 class="text-2xl font-bold mb-4">Painel do Administrador</h1>
-    <table class="w-full table-auto border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border px-4 py-2">Nome</th>
-          <th class="border px-4 py-2">Data</th>
-          <th class="border px-4 py-2">Hora</th>
-          <th class="border px-4 py-2">Foto</th>
-          <th class="border px-4 py-2">Localização</th>
-        </tr>
-      </thead>
-      <tbody id="punch-records"></tbody>
-    </table>
-    <button id="admin-logout-btn" class="btn-secondary mt-6">Sair</button>
-  </div>
+    function formatarHora(data) {
+      return data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
 
-  <script src="script.js"></script>
+    function carregarBatidas(nome) {
+      const dataHoje = new Date().toISOString().split('T')[0];
+      const key = `ponto-${nome}-${dataHoje}`;
+      const batidas = JSON.parse(localStorage.getItem(key) || "[]");
+      return batidas;
+    }
+
+    function salvarBatida(nome, hora) {
+      const dataHoje = new Date().toISOString().split('T')[0];
+      const key = `ponto-${nome}-${dataHoje}`;
+      const batidas = JSON.parse(localStorage.getItem(key) || "[]");
+      batidas.push(hora);
+      localStorage.setItem(key, JSON.stringify(batidas));
+    }
+
+    function calcularBanco(nome, batidas) {
+      const hoje = new Date();
+      const diaSemana = hoje.getDay();
+      const ehSexta = diaSemana === 5;
+
+      const entradaEsperada = users[nome].entrada;
+      const saidaEsperada = ehSexta ? users[nome].sexta : users[nome].saida;
+
+      if (batidas.length < 4) return { saldo: "--", alerta: "Batidas incompletas." };
+
+      const t1 = new Date(`${hoje.toDateString()} ${batidas[0]}`);
+      const t2 = new Date(`${hoje.toDateString()} ${batidas[1]}`);
+      const t3 = new Date(`${hoje.toDateString()} ${batidas[2]}`);
+      const t4 = new Date(`${hoje.toDateString()} ${batidas[3]}`);
+
+      const trabalho1 = (t2 - t1) / 3600000;
+      const trabalho2 = (t4 - t3) / 3600000;
+      const total = trabalho1 + trabalho2;
+
+      const entrada = new Date(`${hoje.toDateString()} ${entradaEsperada}`);
+      const saida = new Date(`${hoje.toDateString()} ${saidaEsperada}`);
+      const carga = (saida - entrada) / 3600000 - 1;
+
+      const diff = total - carga;
+      const saldo = diff >= 0 ? `+${diff.toFixed(2)}h` : `${diff.toFixed(2)}h`;
+
+      const intervaloAlmoco = (t3 - t2) / 60000;
+      let alertaTexto = "";
+      if (intervaloAlmoco < 60) alertaTexto = `⚠️ Almoço inferior a 1h: ${intervaloAlmoco} min`;
+      if (intervaloAlmoco > 60) alertaTexto = `⏳ Almoço excedeu 1h: -${(intervaloAlmoco - 60)} min`;
+
+      return { saldo, alerta: alertaTexto };
+    }
+
+    loginBtn.onclick = () => {
+      const nome = usernameInput.value.trim();
+      const senha = passwordInput.value.trim();
+
+      if (users[nome] && users[nome].senha === senha) {
+        usuarioLogado = nome;
+        loginSection.classList.add("hidden");
+        pontoSection.classList.remove("hidden");
+        userWelcome.textContent = `Olá, ${nome}`;
+        dateDisplay.textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+
+        const batidas = carregarBatidas(nome);
+        batidasList.innerHTML = batidas.map((h, i) => `<li>${i+1}ª batida: ${h}</li>`).join("");
+        const banco = calcularBanco(nome, batidas);
+        saldoHoras.textContent = banco.saldo;
+        alerta.textContent = banco.alerta;
+      } else {
+        alert("Usuário ou senha incorretos.");
+      }
+    };
+
+    pontoBtn.onclick = () => {
+      const agora = new Date();
+      const hora = formatarHora(agora);
+      salvarBatida(usuarioLogado, hora);
+      const batidas = carregarBatidas(usuarioLogado);
+
+      batidasList.innerHTML = batidas.map((h, i) => `<li>${i+1}ª batida: ${h}</li>`).join("");
+      const banco = calcularBanco(usuarioLogado, batidas);
+      saldoHoras.textContent = banco.saldo;
+      alerta.textContent = banco.alerta;
+    };
+
+    logoutBtn.onclick = () => {
+      usuarioLogado = null;
+      loginSection.classList.remove("hidden");
+      pontoSection.classList.add("hidden");
+      usernameInput.value = "";
+      passwordInput.value = "";
+    };
+  </script>
 </body>
 </html>
