@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Ponto Papelprint</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto bg-white shadow-md rounded-xl p-6">
+    <h1 class="text-2xl font-bold mb-6">Painel do Administrador - Controle de Ponto</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div>
+        <label class="block font-medium mb-1">Funcionário</label>
+        <select id="filtro-funcionario" class="w-full border rounded px-3 py-2">
+          <option value="">Todos</option>
+          <option value="Emerson">Emerson</option>
+          <option value="Flavio">Flavio</option>
+          <option value="Elias">Elias</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Data Inicial</label>
+        <input type="date" id="data-inicial" class="w-full border rounded px-3 py-2">
+      </div>
+
+      <div>
+        <label class="block font-medium mb-1">Data Final</label>
+        <input type="date" id="data-final" class="w-full border rounded px-3 py-2">
+      </div>
+
+      <div class="flex items-end">
+        <button id="aplicar-filtros" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Aplicar Filtros</button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full table-auto border">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-4 py-2">Nome</th>
+            <th class="border px-4 py-2">Data</th>
+            <th class="border px-4 py-2">Batidas</th>
+            <th class="border px-4 py-2">Selfies</th>
+            <th class="border px-4 py-2">Justificativa</th>
+            <th class="border px-4 py-2">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-registros"></tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 text-right">
+      <button id="exportar-excel" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Exportar Excel</button>
+    </div>
+  </div>
+
+  <script>
+    const tabela = document.getElementById("tabela-registros");
+    const filtroFuncionario = document.getElementById("filtro-funcionario");
+    const filtroInicio = document.getElementById("data-inicial");
+    const filtroFim = document.getElementById("data-final");
+    const aplicarFiltrosBtn = document.getElementById("aplicar-filtros");
+    const exportarBtn = document.getElementById("exportar-excel");
+
+    function carregarRegistros() {
+      const registros = [];
+      for (let chave in localStorage) {
+        if (chave.startsWith("ponto-")) {
+          const partes = chave.split("-");
+          const nome = partes[1];
+          const data = partes.slice(2).join("-");
+          const batidas = JSON.parse(localStorage.getItem(chave));
+          registros.push({ nome, data, batidas });
+        }
+      }
+      return registros;
+    }
+
+    function aplicarFiltros() {
+      const nomeFiltro = filtroFuncionario.value;
+      const inicio = filtroInicio.value;
+      const fim = filtroFim.value;
+
+      const dados = carregarRegistros();
+      const filtrados = dados.filter(r => {
+        const dentroFuncionario = !nomeFiltro || r.nome === nomeFiltro;
+        const dentroData = (!inicio || r.data >= inicio) && (!fim || r.data <= fim);
+        return dentroFuncionario && dentroData;
+      });
+
+      renderTabela(filtrados);
+    }
+
+    function renderTabela(dados) {
+      tabela.innerHTML = "";
+      dados.forEach((r, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
+
+        const batidas = r.batidas.map((b, i) => `<div>${i+1}ª: ${b.hora}</div>`).join("");
+        const selfies = r.batidas.map(b => `<img src="${b.foto}" alt="Selfie" class="w-12 h-12 rounded-full mx-auto mb-1" />`).join("");
+
+        tr.innerHTML = `
+          <td class="border px-4 py-2">${r.nome}</td>
+          <td class="border px-4 py-2">${r.data}</td>
+          <td class="border px-4 py-2">${batidas}</td>
+          <td class="border px-4 py-2">${selfies}</td>
+          <td class="border px-4 py-2">
+            <input type="text" placeholder="Justificativa" class="w-full border rounded px-2 py-1 text-sm" data-jus="${r.nome}-${r.data}" />
+          </td>
+          <td class="border px-4 py-2 text-center">
+            <button onclick="editarRegistro('${r.nome}','${r.data}')" class="text-blue-600 hover:underline mr-2">Editar</button>
+            <button onclick="excluirRegistro('${r.nome}','${r.data}')" class="text-red-600 hover:underline">Excluir</button>
+          </td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    function excluirRegistro(nome, data) {
+      if (confirm(`Deseja excluir o registro de ${nome} em ${data}?`)) {
+        localStorage.removeItem(`ponto-${nome}-${data}`);
+        aplicarFiltros();
+      }
+    }
+
+    function editarRegistro(nome, data) {
+      const novaHora = prompt("Digite as novas batidas separadas por vírgula (HH:MM)");
+      if (!novaHora) return;
+      const lista = novaHora.split(",").map(h => h.trim());
+      const atual = carregarRegistros().find(r => r.nome === nome && r.data === data);
+      if (!atual) return alert("Registro não encontrado.");
+      const novos = lista.map((h, i) => ({ hora: h, foto: atual.batidas[i]?.foto || "" }));
+      localStorage.setItem(`ponto-${nome}-${data}`, JSON.stringify(novos));
+      aplicarFiltros();
+    }
+
+    function exportarExcel() {
+      const dados = carregarRegistros();
+      let csv = "Nome,Data,1ª Batida,2ª Batida,3ª Batida,4ª Batida\n";
+      dados.forEach(r => {
+        const b = r.batidas.map(x => x.hora);
+        while (b.length < 4) b.push("");
+        csv += `${r.nome},${r.data},${b[0]},${b[1]},${b[2]},${b[3]}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `banco_horas.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    aplicarFiltrosBtn.onclick = aplicarFiltros;
+    exportarBtn.onclick = exportarExcel;
+    aplicarFiltros();
+  </script>
+</body>
+</html>
