@@ -10,24 +10,31 @@
   <div class="container">
     <h1>Sistema de Ponto - Funcionário</h1>
 
-    <div id="login-area">
-      <label for="login-user">Usuário</label>
-      <input type="text" id="login-user" placeholder="Digite seu nome" />
-      <label for="login-pass">Senha</label>
-      <input type="password" id="login-pass" placeholder="Digite sua senha" />
-      <button onclick="loginFuncionario()">Entrar</button>
-      <p id="login-error" class="error-message"></p>
+    <!-- Login -->
+    <div id="login-form">
+      <label for="usuario">Usuário</label>
+      <input type="text" id="usuario" class="form-control" placeholder="Digite seu nome" />
+
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" class="form-control" placeholder="Digite sua senha" />
+
+      <button onclick="login()" class="btn btn-primary">Entrar</button>
+      <p id="mensagem-login" class="mensagem-erro oculto">Usuário ou senha incorretos.</p>
     </div>
 
-    <div id="registro-area" class="hidden">
-      <p id="bem-vindo"></p>
-      <p id="horario-atual"></p>
+    <!-- Painel principal -->
+    <div id="painel-ponto" class="oculto">
+      <p>Bem-vindo, <span id="usuario-logado"></span></p>
+      <p>Horário atual: <span id="hora-atual"></span></p>
 
-      <button id="bater-ponto-btn" onclick="baterPonto()">Bater Ponto</button>
-      <button onclick="logout()">Sair</button>
+      <div class="botoes">
+        <button onclick="baterPonto()" class="btn btn-success">Bater Ponto</button>
+        <button onclick="logout()" class="btn btn-danger">Sair</button>
+      </div>
 
+      <!-- Resumo diário -->
       <h2>Resumo do Dia</h2>
-      <ul id="resumo-dia"></ul>
+      <div id="resumo-dia" class="resumo-box"></div>
     </div>
   </div>
 
