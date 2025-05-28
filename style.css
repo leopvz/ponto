@@ -6,30 +6,25 @@ body {
 }
 
 .container {
-  max-width: 960px;
-  margin: 2rem auto;
+  max-width: 600px;
+  margin: 3rem auto;
   background-color: white;
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 }
 
-h1 {
-  font-size: 1.75rem;
+h1, h2 {
+  font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #1e293b;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-weight: 500;
+  text-align: center;
 }
 
 input, select {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -43,69 +38,101 @@ button {
   border: none;
   cursor: pointer;
   font-size: 0.95rem;
+  transition: background-color 0.2s;
 }
 
-.btn-primary {
+#btnEntrar,
+#btnBaterPonto,
+#btnResumoDia {
   background-color: #2563eb;
   color: white;
   margin-right: 0.5rem;
 }
 
-.btn-primary:hover {
+#btnEntrar:hover,
+#btnBaterPonto:hover,
+#btnResumoDia:hover {
   background-color: #1e40af;
 }
 
-.btn-secondary {
+#btnSair {
   background-color: #e2e8f0;
   color: #1a202c;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+#btnSair:hover {
+  background-color: #cbd5e1;
+}
+
+#loginArea,
+#pontoArea {
+  display: flex;
+  flex-direction: column;
+}
+
+#header-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+#relogio {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+#ponto-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#resumo {
   margin-top: 1.5rem;
 }
 
-table th,
-table td {
-  text-align: left;
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  vertical-align: middle;
-}
-
-table th {
+.resumo-item {
   background-color: #f1f5f9;
-  font-weight: 600;
-  color: #334155;
-}
-
-.thumbnail {
-  width: 48px;
-  height: 48px;
+  padding: 1rem;
   border-radius: 8px;
-  object-fit: cover;
-}
-
-.filters {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
   margin-bottom: 1rem;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
+.resumo-item img {
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  object-fit: cover;
 }
 
 .text-error {
   color: red;
   font-weight: 500;
+  text-align: center;
 }
 
 .text-success {
   color: green;
   font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  #ponto-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  button {
+    width: 100%;
+  }
 }
