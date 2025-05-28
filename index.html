@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistema de Ponto</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <!-- Tela de Login -->
-    <div id="login-area">
+    <!-- Área de Login -->
+    <div id="loginArea">
       <h2>Login do Funcionário</h2>
-      <input type="text" id="username" placeholder="Usuário">
-      <input type="password" id="password" placeholder="Senha">
-      <button id="login-btn">Entrar</button>
+      <input type="text" id="usuario" placeholder="Usuário" />
+      <input type="password" id="senha" placeholder="Senha" />
+      <button id="btnEntrar">Entrar</button>
     </div>
 
-    <!-- Área pós-login -->
-    <div id="main-area" style="display:none;">
+    <!-- Área de Ponto (pós-login) -->
+    <div id="pontoArea" style="display: none;">
       <div id="header-area">
         <span id="relogio"></span>
-        <button id="logout-btn">Sair</button>
+        <button id="btnSair">Sair</button>
       </div>
-      <h2>Bem-vindo(a), <span id="user-logado"></span></h2>
+      <h2 id="saudacao"></h2>
       <div id="ponto-actions">
-        <button id="bater-ponto-btn">Bater Ponto</button>
-        <button id="resumo-dia-btn">Resumo do Dia</button>
+        <button id="btnBaterPonto">Bater Ponto</button>
+        <button id="btnResumoDia">Resumo do Dia</button>
       </div>
-      <div id="resumo-dia" style="display:none;"></div>
-      <video id="video" autoplay style="display:none;"></video>
-      <canvas id="canvas" style="display:none;"></canvas>
+      <div id="resumo" style="margin-top: 20px;"></div>
+      <video id="video" autoplay style="display: none;"></video>
+      <canvas id="canvas" style="display: none;"></canvas>
     </div>
   </div>
 
